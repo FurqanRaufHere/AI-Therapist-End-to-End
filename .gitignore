@@ -4,3 +4,4 @@ __pycache__/
 ProcessedData/
 VectorStore/
 # Data/*.pdf
+.env
