@@ -3,4 +3,4 @@ __pycache__/
 *.pyc
 ProcessedData/
 VectorStore/
-Data/*.pdf
+# Data/*.pdf
