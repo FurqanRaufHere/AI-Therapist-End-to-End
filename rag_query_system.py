@@ -11,7 +11,7 @@ EMBEDDING_FILE = "./ProcessedData/embeddings.npy"
 INDEX_FILE = "./VectorStore/vector_store.index"
 
 # Replace with your actual Groq API key
-API_KEY = "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"
+API_KEY = ""
 
 TOP_K = 5  # number of chunks to retrieve
 
