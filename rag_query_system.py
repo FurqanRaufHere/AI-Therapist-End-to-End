@@ -1,79 +1,49 @@
 import os
 import json
-import faiss
 import numpy as np
-import requests
-from dotenv import load_dotenv
+import faiss
 from sentence_transformers import SentenceTransformer
-from google.oauth2 import service_account
-import google.auth.transport.requests
+import requests
 
-# Load environment variables
-load_dotenv()
-
-# --- Google Gemini Setup ---
-def get_access_token():
-    key_path = os.path.join("secrets", "ai-therapist-5517-94f11d5b590b.json")
-    scopes = ["https://www.googleapis.com/auth/cloud-platform"]
-    credentials = service_account.Credentials.from_service_account_file(key_path, scopes=scopes)
-    credentials.refresh(google.auth.transport.requests.Request())
-    return credentials.token
-
-PROJECT_ID = "ai-therapist-5517"  # Replace with your actual project ID
-LOCATION = "us-central1"            # Default location for Gemini models
-
-# --- FAISS + Embedding Model Setup ---
-INDEX_FILE = "./VectorStore/vector_store.index"
+# Constants
 CHUNK_FILE = "./ProcessedData/chunks.json"
+EMBEDDING_FILE = "./ProcessedData/embeddings.npy"
+INDEX_FILE = "./VectorStore/vector_store.index"
 
+# Replace with your actual Groq API key
+API_KEY = "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"
+
+TOP_K = 5  # number of chunks to retrieve
+
+# Load model and data
 model = SentenceTransformer("all-MiniLM-L6-v2")
-index = faiss.read_index(INDEX_FILE)
-
 with open(CHUNK_FILE, "r", encoding="utf-8") as f:
     chunks = json.load(f)
 
-def retrieve_similar_chunks(query, top_k=3):
-    query_embedding = model.encode([query])
-    query_embedding = np.array(query_embedding).astype("float32")
-    distances, indices = index.search(query_embedding, top_k)
-    return [chunks[idx] for idx in indices[0]]
+# Load FAISS index
+index = faiss.read_index(INDEX_FILE)
 
-# --- Gemini 2.0 Flash Direct API Call ---
-def call_gemini_flash(prompt_text):
-    access_token = get_access_token()
+def get_query_embedding(query):
+    return model.encode([query])[0]
 
-    url = f"https://{LOCATION}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/{LOCATION}/publishers/google/models/gemini-1.5-flash:generateContent"
+def retrieve_relevant_chunks(query, k=TOP_K):
+    query_embedding = get_query_embedding(query).reshape(1, -1)
+    distances, indices = index.search(query_embedding, k)
+    relevant_chunks = [chunks[i]['text'] for i in indices[0]]
+    return relevant_chunks
 
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json",
-    }
+def augment_prompt(query, context_chunks):
+    context = "\n\n".join(context_chunks)
+    augmented_prompt = f"""You are a super chill, friendly therapist assistant who talks like a supportive Gen Z buddy.
+Keep your answers:
 
-    payload = {
-        "contents": [
-            {
-                "role": "user",
-                "parts": [{"text": prompt_text}]
-            }
-        ]
-    }
+- Warm, positive, and encouraging
+- Casual, slangy, with a fun vibe (but still respectful and empathetic)
+- Start with a catchy, upbeat hook or phrase to grab attention
+- Use simple, relatable language — like you're chatting with a close friend
+- Help the user feel understood, hopeful, and motivated
 
-    response = requests.post(url, headers=headers, data=json.dumps(payload))
-
-    if response.status_code == 200:
-        data = response.json()
-        return data["candidates"][0]["content"]["parts"][0]["text"]
-    else:
-        print("Gemini API error:", response.status_code, response.text)
-        return "Sorry, I couldn't fetch a response."
-
-# --- Generate Response Function ---
-def generate_response(query, top_k=3):
-    retrieved_chunks = retrieve_similar_chunks(query, top_k)
-    context = "\n\n".join([chunk['text'] for chunk in retrieved_chunks])
-
-    prompt = f"""You are a compassionate AI assistant trained to support university students with mental health concerns.
-Use the following context to answer the question empathetically and informatively.
+Use the info below to answer the user's question in this style.
 
 Context:
 {context}
@@ -82,15 +52,72 @@ User Question:
 {query}
 
 Answer:"""
+    return augmented_prompt
 
-    answer = call_gemini_flash(prompt)
-    return answer, retrieved_chunks
+# def call_llm(prompt):
+#     headers = {
+#         "Authorization": f"Bearer {API_KEY}",
+#         "Content-Type": "application/json"
+#     }
+#     data = {
+#         "model": "llama-3.3-70b",  # Groq model name
+#         "messages": [{"role": "user", "content": prompt}],
+#         "temperature": 0.7,
+#         "max_tokens": 500
+#     }
 
-# --- Test Block ---
+#     # Groq API endpoint for chat completions
+#     GROQ_API_URL = "https://api.groq.com/v1/chat/completions"
+
+#     response = requests.post(GROQ_API_URL, headers=headers, data=json.dumps(data))
+
+#     if response.status_code == 200:
+#         return response.json()["choices"][0]["message"]["content"]
+#     else:
+#         return f"[!] Error {response.status_code}: {response.text}"
+
+
+def call_llm(prompt):
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "model": "llama-3.3-70b",
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.7,
+        "max_tokens": 500
+    }
+
+    # Groq OpenAI-compatible endpoint
+    GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+
+    response = requests.post(GROQ_API_URL, headers=headers, json=data)
+
+    if response.status_code == 200:
+        return response.json()["choices"][0]["message"]["content"]
+    else:
+        return f"[!] Error {response.status_code}: {response.text}"
+
+
+
+def rag_query_pipeline(user_query):
+    context = retrieve_relevant_chunks(user_query)
+    prompt = augment_prompt(user_query, context)
+    response = call_llm(prompt)
+    return response
+
+def generate_response(user_query):
+    """
+    Returns (answer, sources) tuple as expected by Streamlit app.
+    """
+    answer = rag_query_pipeline(user_query)
+    sources = []  # Implement if you want to return sources
+    return answer, sources
+
+
 if __name__ == "__main__":
-    test_query = "What are effective cognitive behavioral therapy techniques?"
-    answer, sources = generate_response(test_query)
-    print("Answer:", answer)
-    print("\nSources:")
-    for s in sources:
-        print("-", s['source'])
+    user_input = input("Ask a question: ")
+    result = rag_query_pipeline(user_input)
+    print("\n[✓] Response from RAG System:\n")
+    print(result)
