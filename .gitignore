@@ -5,3 +5,4 @@ ProcessedData/
 VectorStore/
 # Data/*.pdf
 .env
+secrets/
