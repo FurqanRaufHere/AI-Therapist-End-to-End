@@ -1,11 +1,101 @@
 import streamlit as st
 from rag_query_system import generate_response
 
-st.set_page_config(page_title="Mind Matters - Therapy Chatbot", page_icon="🧠")
+st.set_page_config(page_title="Mind Matters - Therapy Chatbot", page_icon="🧠", layout="centered")
+
+# Inject custom CSS for better chat UI styling
+st.markdown(
+    """
+    <style>
+    /* Page background */
+    body {
+        background-color: #f5f7fa;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Container for chat bubbles */
+    .chat-container {
+        max-width: 700px;
+        margin: auto;
+        padding: 20px 10px;
+    }
+
+    /* User message bubble */
+    .user-msg {
+        background-color: #4a90e2;
+        color: white;
+        padding: 14px 18px;
+        border-radius: 18px 18px 0 18px;
+        max-width: 75%;
+        margin-left: auto;
+        margin-bottom: 12px;
+        font-size: 16px;
+        box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+    }
+
+    /* Bot message bubble */
+    .bot-msg {
+        background-color: #e4e6eb;
+        color: #242526;
+        padding: 14px 18px;
+        border-radius: 18px 18px 18px 0;
+        max-width: 75%;
+        margin-right: auto;
+        margin-bottom: 8px;
+        font-size: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        white-space: pre-wrap;
+    }
+
+    /* Sources expander styling */
+    .source-expander > div[role="button"] {
+        font-weight: 600;
+        color: #4a90e2;
+        margin-bottom: 6px;
+    }
+
+    /* Source list styling */
+    .source-list {
+        margin-left: 12px;
+        font-size: 14px;
+        color: #555;
+    }
+
+    /* Input box styling */
+    div[data-testid="stTextInput"] > div > input {
+        font-size: 18px;
+        padding: 12px 15px;
+        border-radius: 10px;
+        border: 1.5px solid #ccc;
+        transition: border-color 0.3s ease;
+    }
+
+    div[data-testid="stTextInput"] > div > input:focus {
+        border-color: #4a90e2;
+        outline: none;
+    }
+
+    /* Send button styling */
+    button[kind="primary"] {
+        background-color: #4a90e2;
+        color: white;
+        font-size: 18px;
+        padding: 12px 25px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    button[kind="primary"]:hover {
+        background-color: #357ABD;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 st.title("Mind Matters - Therapy RAG Chatbot")
 
-# Initialize session state to keep chat history
 if "history" not in st.session_state:
     st.session_state.history = []
 
@@ -13,25 +103,37 @@ def add_user_message(message):
     st.session_state.history.append({"role": "user", "content": message})
 
 def add_bot_message(message, sources):
+    if not sources or not isinstance(sources, list):
+        sources = []
     st.session_state.history.append({"role": "bot", "content": message, "sources": sources})
 
-# Input box for user query
 user_query = st.text_input("Ask a question about therapy or mental health:", key="input")
 
-# When user submits query
 if st.button("Send") and user_query.strip():
     add_user_message(user_query.strip())
     with st.spinner("Thinking..."):
         answer, sources = generate_response(user_query.strip())
     add_bot_message(answer, sources)
-    st.experimental_rerun()
 
-# Display conversation history in chat bubbles
+# Chat container div for layout
+st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+
 for chat in st.session_state.history:
     if chat["role"] == "user":
-        st.markdown(f'<div style="background-color:#DCF8C6; padding:10px; border-radius:10px; max-width:70%; margin-left:auto; margin-bottom:8px;">**You:** {chat["content"]}</div>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="user-msg">**You:** {chat["content"]}</div>',
+            unsafe_allow_html=True,
+        )
     else:
-        st.markdown(f'<div style="background-color:#E8E8E8; padding:10px; border-radius:10px; max-width:70%; margin-bottom:4px;">**Mind Matters:** {chat["content"]}</div>', unsafe_allow_html=True)
-        with st.expander("Sources", expanded=False):
-            for s in chat["sources"]:
-                st.write(f"- {s['source']}")
+        st.markdown(
+            f'<div class="bot-msg">**Mind Matters:** {chat["content"]}</div>',
+            unsafe_allow_html=True,
+        )
+        with st.expander("Sources", expanded=False, key=f"sources-{chat['content'][:30]}"):
+            if chat.get("sources") and isinstance(chat["sources"], list):
+                for s in chat["sources"]:
+                    st.markdown(f'<div class="source-list">- {s.get("source", "Unknown source")}</div>', unsafe_allow_html=True)
+            else:
+                st.markdown('<div class="source-list">No sources found.</div>', unsafe_allow_html=True)
+
+st.markdown("</div>", unsafe_allow_html=True)
