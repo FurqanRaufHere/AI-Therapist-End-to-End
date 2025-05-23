@@ -222,7 +222,7 @@ st.sidebar.button("📓 Journal Now")
 st.sidebar.button("🧘 Guided Meditation")
 st.sidebar.selectbox("Switch tone style:", ["Empathetic", "Gen-Z", "Motivational"], key="tone_toggle")
 
-# Main Chat UI
+# Main Chat User Interface
 st.markdown("<div class='main-header'><h2>MindMatters Chat</h2></div>", unsafe_allow_html=True)
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
