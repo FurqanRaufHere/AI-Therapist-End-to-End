@@ -269,17 +269,16 @@ st.markdown(
         color: #e0e0e0;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    .chat-container {
-        max-width: 700px;
-        height: 550px;
-        overflow-y: auto;
-        margin: 1rem auto;
-        padding: 1rem;
-        background-color: #1e1e1e;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.7);
-        display: flex;
-        flex-direction: column;
+    # .chat-container {
+    #     max-width: 70px;
+    #     overflow-y: auto;
+    #     margin: 1rem auto;
+    #     padding: 1rem;
+    #     background-color: #1e1e1e;
+    #     border-radius: 12px;
+    #     box-shadow: 0 4px 12px rgba(0,0,0,0.7);
+    #     display: flex;
+    #     flex-direction: column;
     }
     .chat-container::-webkit-scrollbar {
         width: 8px;
@@ -359,21 +358,38 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+# Initialize session state variables
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+if "quote" not in st.session_state:
+    st.session_state.quote = "You are stronger than you think."
+    if "author" not in st.session_state:
+        st.session_state.author = "Unknown"
+if "tone" not in st.session_state:
+    st.session_state.tone = "Empathetic"
+if "history" not in st.session_state:
+    st.session_state.history = []
+    # Main application
 
-# Initialize chat history
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# To hold input temporarily
 if "user_input" not in st.session_state:
     st.session_state.user_input = ""
+
+# Flag to indicate input was sent by button click
+if "send_by_button" not in st.session_state:
+    st.session_state.send_by_button = False
 
 def send_message():
     msg = st.session_state.user_input.strip()
     if not msg:
         return
     st.session_state.chat_history.append({"role": "user", "content": msg})
-    st.session_state.user_input = ""
+    
+    # Clear input only if called via textarea on_change (not button)
+    if not st.session_state.send_by_button:
+        st.session_state.user_input = ""
 
     with st.spinner("Thinking..."):
         bot_reply, _ = generate_response(msg)
@@ -399,29 +415,14 @@ user_text = st.text_area(
     height=70,
     placeholder="Type your message here...",
     label_visibility="collapsed",
+    on_change=send_message,  # Send message on Enter key press
 )
-
 send_clicked = st.button("Send")
-
 st.markdown("</div>", unsafe_allow_html=True)
 
-# Send if button clicked
 if send_clicked and st.session_state.user_input.strip():
+    st.session_state.send_by_button = True  # Set flag to prevent clearing input twice
     send_message()
+    st.session_state.user_input = ""  # Now clear input safely after send_message
+    st.session_state.send_by_button = False  # Reset flag
 
-# Send on Enter key press in textarea (workaround using form submit)
-# Streamlit does not support direct enter to submit on textarea without JS hacks,
-# so we rely on user pressing send or hitting enter + shift for new lines.
-
-# Auto scroll chat to bottom after update (JS)
-st.markdown(
-    """
-    <script>
-    const chatBox = window.parent.document.getElementById('chat-box');
-    if (chatBox) {
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-    </script>
-    """,
-    unsafe_allow_html=True,
-)
