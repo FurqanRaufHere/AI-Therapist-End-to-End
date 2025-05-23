@@ -249,7 +249,6 @@
 #     st.markdown("- You expressed emotions around stress or anxiety\n- A moment of calm was encouraged\n- Stay consistent with your check-ins 💜")
 #     st.markdown("**Tip:** Try a guided breathing tool from the sidebar before your next session.")
 
-
 import streamlit as st
 from rag_query_system import generate_response
 
@@ -261,17 +260,15 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Dark mode friendly CSS styles for chat
+# Dark mode CSS styling
 st.markdown(
     """
     <style>
-    /* Dark background */
     body, .block-container {
         background-color: #121212;
         color: #e0e0e0;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    /* Chat container */
     .chat-container {
         max-width: 700px;
         height: 550px;
@@ -284,7 +281,6 @@ st.markdown(
         display: flex;
         flex-direction: column;
     }
-    /* Scrollbar styling */
     .chat-container::-webkit-scrollbar {
         width: 8px;
     }
@@ -296,7 +292,6 @@ st.markdown(
         background-color: #555;
         border-radius: 12px;
     }
-    /* User message bubble */
     .user-bubble {
         background-color: #4a90e2;
         color: white;
@@ -310,7 +305,6 @@ st.markdown(
         word-wrap: break-word;
         white-space: pre-wrap;
     }
-    /* Bot message bubble */
     .bot-bubble {
         background-color: #333744;
         color: #d0d0d0;
@@ -324,14 +318,12 @@ st.markdown(
         word-wrap: break-word;
         white-space: pre-wrap;
     }
-    /* Input container */
-    .input-container {
+    .input-row {
         max-width: 700px;
         margin: 0 auto 1rem;
         display: flex;
         gap: 0.5rem;
     }
-    /* Text input style */
     textarea[data-testid="stTextArea"] {
         flex-grow: 1;
         background-color: #1e1e1e !important;
@@ -346,7 +338,6 @@ st.markdown(
         border-color: #4a90e2 !important;
         outline: none !important;
     }
-    /* Send button */
     button[kind="primary"] {
         background-color: #4a90e2;
         color: white;
@@ -356,11 +347,11 @@ st.markdown(
         border: none;
         cursor: pointer;
         transition: background-color 0.3s ease;
+        user-select: none;
     }
     button[kind="primary"]:hover {
         background-color: #357ABD;
     }
-    /* Hide Streamlit footer */
     footer {
         visibility: hidden;
     }
@@ -369,65 +360,60 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Initialize chat history in session state
+# Initialize chat history
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# Function to handle sending user message and getting bot response
-def send_message():
-    user_msg = st.session_state.user_input.strip()
-    if not user_msg:
-        return
-    # Append user message
-    st.session_state.chat_history.append({"role": "user", "content": user_msg})
-    # Clear input box
+# To hold input temporarily
+if "user_input" not in st.session_state:
     st.session_state.user_input = ""
 
-    # Generate bot response
+def send_message():
+    msg = st.session_state.user_input.strip()
+    if not msg:
+        return
+    st.session_state.chat_history.append({"role": "user", "content": msg})
+    st.session_state.user_input = ""
+
     with st.spinner("Thinking..."):
-        bot_reply, _ = generate_response(user_msg)
-    # Append bot response
+        bot_reply, _ = generate_response(msg)
     st.session_state.chat_history.append({"role": "bot", "content": bot_reply})
 
 # Title
 st.title("🧠 MindMatters - AI Therapist Chat")
 
-# Chat display container with scroll
-chat_container = st.container()
-with chat_container:
+# Chat box container
+chat_box = st.container()
+with chat_box:
     st.markdown('<div class="chat-container" id="chat-box">', unsafe_allow_html=True)
     for msg in st.session_state.chat_history:
         css_class = "user-bubble" if msg["role"] == "user" else "bot-bubble"
         st.markdown(f'<div class="{css_class}">{msg["content"]}</div>', unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-# Input and send button horizontally
-st.markdown('<div class="input-container">', unsafe_allow_html=True)
-st.text_area(
-    "Type your message here and press Enter to send...",
+# Input row with textarea and send button
+st.markdown('<div class="input-row">', unsafe_allow_html=True)
+user_text = st.text_area(
+    "",
     key="user_input",
     height=70,
-    on_change=send_message,
-    placeholder="What's on your mind?",
+    placeholder="Type your message here...",
     label_visibility="collapsed",
 )
+
+send_clicked = st.button("Send")
+
 st.markdown("</div>", unsafe_allow_html=True)
 
-# Autofocus the input field on page load (works in some browsers)
-st.markdown(
-    """
-    <script>
-    const ta = window.parent.document.querySelector('textarea[aria-label="Type your message here and press Enter to send..."]');
-    if (ta) {
-        ta.focus();
-        ta.selectionStart = ta.selectionEnd = ta.value.length;
-    }
-    </script>
-    """,
-    unsafe_allow_html=True,
-)
+# Send if button clicked
+if send_clicked and st.session_state.user_input.strip():
+    send_message()
 
-# Scroll chat to bottom after new messages (experimental)
+# Send on Enter key press in textarea (workaround using form submit)
+# Streamlit does not support direct enter to submit on textarea without JS hacks,
+# so we rely on user pressing send or hitting enter + shift for new lines.
+
+# Auto scroll chat to bottom after update (JS)
 st.markdown(
     """
     <script>
@@ -436,15 +422,6 @@ st.markdown(
         chatBox.scrollTop = chatBox.scrollHeight;
     }
     </script>
-    """,
-    unsafe_allow_html=True,
-)
-# Footer
-st.markdown(
-    """
-    <footer>
-        <p style="text-align: center; color: #aaa;">&copy; 2023 MindMatters. All rights reserved.</p>
-    </footer>
     """,
     unsafe_allow_html=True,
 )
