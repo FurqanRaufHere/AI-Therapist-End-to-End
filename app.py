@@ -426,3 +426,13 @@ if send_clicked and st.session_state.user_input.strip():
     st.session_state.user_input = ""  # Now clear input safely after send_message
     st.session_state.send_by_button = False  # Reset flag
 
+# Footer with motivational quote
+st.markdown(
+    f"""
+    <footer style="text-align: center; margin-top: 2rem; color: #888;">
+        <p>💬 {st.session_state.quote} - <em>{st.session_state.author}</em></p>
+    </footer>
+    """,
+    unsafe_allow_html=True,
+)
+
