@@ -88,9 +88,9 @@ streamlit run app.py
 ---
 
 ## Authors
-- Muhammad Furqan Rauf
-- Syeda Sara Batool
-- Syed Faraz Kashif
+- Muhammad Furqan Rauf (231185)
+- Syeda Sara Batool (231173)
+- Syed Faraz Kashif (231163)
 
 ---
 
