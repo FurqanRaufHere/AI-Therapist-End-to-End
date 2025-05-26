@@ -25,7 +25,7 @@ index = faiss.read_index(INDEX_FILE)
 
 # LangChain model setup with Gemini 2.0 Flash
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.0-flash",  # use "gemini-pro" or "gemini-1.5-flash" depending on your model
+    model="gemini-2.0-flash",
     google_api_key=API_KEY,
     temperature=0.5,
     max_tokens=500
