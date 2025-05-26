@@ -2,6 +2,6 @@ students/
 __pycache__/
 *.pyc
 # ProcessedData/
-VectorStore/
+# VectorStore/
 # Data/*.pdf
 .env
