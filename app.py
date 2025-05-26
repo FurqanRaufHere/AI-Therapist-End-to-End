@@ -1749,11 +1749,13 @@
 
 
 
-
+import warnings
 import streamlit as st
 from datetime import datetime
 import random
 from rag_query_system import generate_response
+import nest_asyncio
+
 
 # # Page setup
 # st.set_page_config(
@@ -1762,6 +1764,10 @@ from rag_query_system import generate_response
 #     layout="wide",
 #     initial_sidebar_state="expanded"
 # )
+
+warnings.filterwarnings("ignore", message="Tried to instantiate class '__path__._path'")
+nest_asyncio.apply()
+
 st.set_page_config(
     page_title=" MindMatters - Your AI Therapist",
     page_icon="🧠",
