@@ -92,15 +92,44 @@ chain = LLMChain(llm=llm, prompt=prompt)
 def get_query_embedding(query):
     return model.encode([query])[0]
 
+# def retrieve_relevant_chunks(query, k=TOP_K):
+#     query_embedding = get_query_embedding(query).reshape(1, -1)
+#     distances, indices = index.search(query_embedding, k)
+#     return [chunks[i]['text'] for i in indices[0]]
+
 def retrieve_relevant_chunks(query, k=TOP_K):
     query_embedding = get_query_embedding(query).reshape(1, -1)
+    faiss.normalize_L2(query_embedding)  # normalize query vector
     distances, indices = index.search(query_embedding, k)
-    return [chunks[i]['text'] for i in indices[0]]
+    results = []
+    for i, idx in enumerate(indices[0]):
+        results.append({
+            "chunk": chunks[idx]["text"],
+            "score": float(distances[0][i])
+        })
+    return results
+
+
+
+# def rag_query_pipeline(user_query):
+#     context = retrieve_relevant_chunks(user_query)
+#     result = chain.run({"context": "\n\n".join(context), "question": user_query})
+#     return result
 
 def rag_query_pipeline(user_query):
-    context = retrieve_relevant_chunks(user_query)
-    result = chain.run({"context": "\n\n".join(context), "question": user_query})
+    retrieved = retrieve_relevant_chunks(user_query)
+    
+    print("\n🔍 Retrieved Chunks with Cosine Similarities:\n")
+    for i, item in enumerate(retrieved):
+        print(f"[{i+1}] Score: {item['score']:.4f}")
+        print(f"Chunk: {item['chunk'][:200]}...\n")
+
+    context_text = "\n\n".join([item["chunk"] for item in retrieved])
+    result = chain.run({"context": context_text, "question": user_query})
     return result
+
+
+
 
 def generate_response(user_query):
     answer = rag_query_pipeline(user_query)
