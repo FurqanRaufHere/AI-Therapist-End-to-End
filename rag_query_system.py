@@ -138,5 +138,5 @@ def generate_response(user_query):
 if __name__ == "__main__":
     user_input = input("Ask a question: ")
     response = rag_query_pipeline(user_input)
-    print("\n[✓] Response from RAG System:\n")
+    print("\n[✓] Response from the RAG System:\n")
     print(response)
