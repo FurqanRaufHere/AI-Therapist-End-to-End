@@ -1,39 +1,3 @@
-# # extract_pdf.py
-
-# import os
-# import json
-# from PyPDF2 import PdfReader
-
-# DATA_DIR = "./Data"
-# OUTPUT_FILE = "./ProcessedData/extracted_texts.json"
-# os.makedirs("ProcessedData", exist_ok=True)
-
-# def extract_text_from_pdfs():
-#     extracted = []
-#     for filename in os.listdir(DATA_DIR):
-#         if filename.endswith(".pdf"):
-#             path = os.path.join(DATA_DIR, filename)
-#             reader = PdfReader(path)
-#             full_text = ""
-#             for page in reader.pages:
-#                 content = page.extract_text()
-#                 if content:
-#                     full_text += content.strip() + "\n"
-#             extracted.append({
-#                 "file": filename,
-#                 "content": full_text
-#             })
-#     return extracted
-
-# if __name__ == "__main__":
-#     results = extract_text_from_pdfs()
-#     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-#         json.dump(results, f, indent=4, ensure_ascii=False)
-#     print(f"[✓] Extracted text saved to {OUTPUT_FILE}")
-
-
-# extract_pdf.py
-
 import os
 import json
 from PyPDF2 import PdfReader
