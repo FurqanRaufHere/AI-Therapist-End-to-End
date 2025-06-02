@@ -16,7 +16,7 @@ University students face increasing psychological challenges including exam anxi
 - Context-aware and empathetic responses powered by **Gemini 2.0 Flash**
 - Massive custom-curated dataset (~10,000+ Q&A entries)
 - Combines PDF therapy books and structured JSON content
-- Semantic search via SentenceTransformers + FAISS
+- Semantic search via **SentenceTransformers + FAISS**
 - Responsive Streamlit-based chat interface
 - Fully local and deployable pipeline
 
@@ -31,7 +31,7 @@ University students face increasing psychological challenges including exam anxi
 | Language Model    | `Google Gemini 2.0 Flash`                 |
 | Backend Logic     | `Python`, `LangChain`    |
 | Frontend Interface| `Streamlit`                               |
-| Data Sources      | Mental health PDFs + `TherapyData.json`   |
+| Data Sources      | `Mental health PDFs` + `TherapyData.json`   |
 
 ---
 
