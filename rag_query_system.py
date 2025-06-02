@@ -92,11 +92,6 @@ chain = LLMChain(llm=llm, prompt=prompt)
 def get_query_embedding(query):
     return model.encode([query])[0]
 
-# def retrieve_relevant_chunks(query, k=TOP_K):
-#     query_embedding = get_query_embedding(query).reshape(1, -1)
-#     distances, indices = index.search(query_embedding, k)
-#     return [chunks[i]['text'] for i in indices[0]]
-
 def retrieve_relevant_chunks(query, k=TOP_K):
     query_embedding = get_query_embedding(query).reshape(1, -1)
     faiss.normalize_L2(query_embedding)  # normalize query vector
