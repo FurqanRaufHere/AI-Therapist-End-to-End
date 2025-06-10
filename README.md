@@ -12,7 +12,7 @@ University students face increasing psychological challenges including exam anxi
 
 ## Key Features
 
-- Retrieval-Augmented Generation (RAG) architecture
+- Retrieval-Augmented Generation (RAG) architecture.
 - Context-aware and empathetic responses powered by **Gemini 2.0 Flash**
 - Massive custom-curated dataset (~10,000+ Q&A entries)
 - Combines PDF therapy books and structured JSON content
