@@ -18,7 +18,7 @@ University students face increasing psychological challenges including exam anxi
 - Combines PDF therapy books and structured JSON content
 - Semantic search via **SentenceTransformers + FAISS**
 - Responsive Streamlit-based chat interface
-- Fully local and deployable pipeline
+- Fully local and deployable pipeline.
 
 ---
 
