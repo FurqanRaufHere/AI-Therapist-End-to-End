@@ -25,7 +25,7 @@ index = faiss.read_index(INDEX_FILE)
 
 # LangChain model setup with Gemini 2.0 Flash
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.0-flash",
+    model="gemini-2.0-flash", #LLM model name
     google_api_key=API_KEY,
     temperature=0.5,
     max_tokens=500
@@ -80,13 +80,6 @@ Here's the user's question:
 
 prompt = PromptTemplate(input_variables=["context", "question"], template=PROMPT_TEMPLATE)
 chain = LLMChain(llm=llm, prompt=prompt)
-
-# tone_prompt_map = {
-#     "Empathetic": "Respond in a warm, caring, and deeply understanding manner. Use gentle and validating language.",
-#     "Gen Z": "Respond with casual Gen Z slang, emojis, and a chill tone. Keep it short and relatable.",
-#     "Motivational": "Respond like a motivational coach, use uplifting, powerful words to encourage the user.",
-#     "Professional": "Respond formally and respectfully, with clinical accuracy but human understanding."
-# }
 
 
 def get_query_embedding(query):
