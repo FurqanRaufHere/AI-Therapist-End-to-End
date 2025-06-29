@@ -98,16 +98,10 @@ def retrieve_relevant_chunks(query, k=TOP_K):
     return results
 
 
-
-# def rag_query_pipeline(user_query):
-#     context = retrieve_relevant_chunks(user_query)
-#     result = chain.run({"context": "\n\n".join(context), "question": user_query})
-#     return result
-
 def rag_query_pipeline(user_query):
     retrieved = retrieve_relevant_chunks(user_query)
     
-    print("\n🔍 Retrieved Chunks with Cosine Similarities:\n")
+    print("\nRetrieved Chunks with Cosine Similarities:\n")
     for i, item in enumerate(retrieved):
         print(f"[{i+1}] Score: {item['score']:.4f}")
         print(f"Chunk: {item['chunk'][:200]}...\n")
