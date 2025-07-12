@@ -1,7 +1,7 @@
 import os
 import json
 import numpy as np
-import faiss
+import faiss # for vector search
 from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
 from langchain_google_genai import ChatGoogleGenerativeAI
