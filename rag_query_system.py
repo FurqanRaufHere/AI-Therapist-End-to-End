@@ -17,7 +17,7 @@ CHUNK_FILE = "./ProcessedData/chunks.json"
 INDEX_FILE = "./VectorStore/vector_store.index"
 TOP_K = 5
 
-# Load chunks and FAISS index
+# Loading  chunks and FAISS index
 model = SentenceTransformer("all-MiniLM-L6-v2")
 with open(CHUNK_FILE, "r", encoding="utf-8") as f:
     chunks = json.load(f)
