@@ -1,4 +1,4 @@
-import faiss
+import faiss #vector store
 import numpy as np
 import os
 
