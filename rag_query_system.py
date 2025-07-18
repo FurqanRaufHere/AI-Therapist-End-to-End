@@ -39,16 +39,7 @@ llm = ChatGoogleGenerativeAI(
 # - Start with a catchy, upbeat hook or phrase to grab attention
 # - Use simple, relatable language — like you're chatting with a close friend
 # - Help the user feel understood, hopeful, and motivated
-
-# Use the info below to answer the user's question in this style.
-
-# Context:
-# {context}
-
-# User Question:
-# {question}
-
-# Answer:
+# - Always end with a positive, uplifting note
 # """
 
 PROMPT_TEMPLATE = """
