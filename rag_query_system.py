@@ -39,7 +39,7 @@ llm = ChatGoogleGenerativeAI(
 # - Start with a catchy, upbeat hook or phrase to grab attention
 # - Use simple, relatable language — like you're chatting with a close friend
 # - Help the user feel understood, hopeful, and motivated
-# - Always end with a positive, uplifting note
+# - Always end with a positive, and also uplifting note. 
 # """
 
 PROMPT_TEMPLATE = """
