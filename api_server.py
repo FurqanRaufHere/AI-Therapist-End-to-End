@@ -1,9 +1,14 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from rag_query_system import generate_response
 from fastapi.middleware.cors import CORSMiddleware
+import logging
 
 app = FastAPI()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("api_server")
 
 # Allow CORS for frontend development
 app.add_middleware(
@@ -33,11 +38,14 @@ class UserAuthResponse(BaseModel):
     email: str
 
 @app.post("/api/chat", response_model=QueryResponse)
-async def chat_endpoint(request: QueryRequest):
+async def chat_endpoint(request: Request, body: QueryRequest):
+    logger.info(f"Received /api/chat request with query: {body.query}")
     try:
-        answer, _ = generate_response(request.query)
+        answer, _ = generate_response(body.query)
+        logger.info("Generated response successfully")
         return QueryResponse(answer=answer)
     except Exception as e:
+        logger.error(f"Error in /api/chat: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/register", response_model=UserAuthResponse)
