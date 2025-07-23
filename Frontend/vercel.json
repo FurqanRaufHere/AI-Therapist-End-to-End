@@ -1,7 +1,4 @@
 {
   "version": 2,
-  "framework": "vite",
-  "settings": {
-    "nodeVersion": "18.x"
-  }
+  "framework": "vite"
 }
