@@ -1,0 +1,113 @@
+if (!inputValue.trim() || isLoading) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      content: inputValue.trim(),
+      isUser: true,
+      timestamp: new Date(),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue('');
+    setIsLoading(true);
+
+    // Simulate AI response
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const aiResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        content: generateAIResponse(userMessage.content),
+        isUser: false,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, aiResponse]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const generateAIResponse = (userInput: string): string => {
+    const lowercaseInput = userInput.toLowerCase();
+    
+    if (lowercaseInput.includes('stress') || lowercaseInput.includes('overwhelm')) {
+      return "I understand you're feeling stressed or overwhelmed. These feelings are completely valid, especially as a student. Let's explore some coping strategies. Can you tell me more about what specifically is causing you stress right now?";
+    }
+    
+    if (lowercaseInput.includes('anxious') || lowercaseInput.includes('anxiety')) {
+      return "Thank you for sharing that you're feeling anxious. Anxiety is very common among students and you're not alone in this experience. Would you like to try a quick breathing exercise together, or would you prefer to talk about what's triggering these feelings?";
+    }
+    
+    if (lowercaseInput.includes('sad') || lowercaseInput.includes('depressed') || lowercaseInput.includes('down')) {
+      return "I hear that you're going through a difficult time emotionally. It takes courage to acknowledge and share these feelings. Your mental health matters, and I'm here to support you. What has been weighing on your mind lately?";
+    }
+    
+    if (lowercaseInput.includes('exam') || lowercaseInput.includes('test') || lowercaseInput.includes('study')) {
+      return "Academic pressures can be really challenging. It's normal to feel stressed about exams and studies. Remember that your worth isn't defined by your grades. Let's work together on some strategies to manage academic stress. How do you usually prepare for exams?";
+    }
+    
+    if (lowercaseInput.includes('sleep') || lowercaseInput.includes('tired') || lowercaseInput.includes('insomnia')) {
+      return "Sleep issues can significantly impact your mental health and academic performance. Good sleep hygiene is crucial for well-being. Are you having trouble falling asleep, staying asleep, or both? Let's discuss some strategies that might help improve your sleep quality.";
+    }
+    
+    if (lowercaseInput.includes('friend') || lowercaseInput.includes('social') || lowercaseInput.includes('lonely')) {
+      return "Social connections are so important for our mental health, and it sounds like this is something on your mind. Whether you're dealing with friendship challenges or feeling isolated, these feelings are valid. Can you share more about your social situation?";
+    }
+    
+    return "Thank you for sharing that with me. I want you to know that I'm here to listen and support you through whatever you're experiencing. Your feelings are valid, and seeking support shows strength. Can you tell me more about how this is affecting your daily life?";
+  };
+=======
+
+  const handleSendMessage = async () => {
+    if (!inputValue.trim() || isLoading) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      content: inputValue.trim(),
+      isUser: true,
+      timestamp: new Date(),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:8000/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: userMessage.content }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      const aiResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        content: data.answer,
+        isUser: false,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, aiResponse]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: 'Sorry, there was an error processing your request. Please try again later.',
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
