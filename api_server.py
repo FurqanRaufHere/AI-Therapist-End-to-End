@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from rag_query_system import generate_response
 from fastapi.middleware.cors import CORSMiddleware
 import logging
+import os
 
 app = FastAPI()
 
@@ -65,6 +66,10 @@ async def login_user(request: UserAuthRequest):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     return UserAuthResponse(name=user["name"], email=request.email)
 
+# if __name__ == "__main__":
+#     import uvicorn
+#     uvicorn.run(app, host="0.0.0.0", port=8000)
+
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
