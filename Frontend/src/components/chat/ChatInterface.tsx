@@ -60,7 +60,8 @@ export function ChatInterface() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://ai-therapist-ouuw.onrender.com/api/chat', {
+      const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000';
+      const response = await fetch(`${BASE_URL}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

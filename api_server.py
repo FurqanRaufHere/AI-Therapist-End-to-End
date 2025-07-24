@@ -39,6 +39,8 @@ class UserAuthResponse(BaseModel):
     name: str
     email: str
 
+
+# 🧠 Replace the /api/chat function with this:
 @app.post("/api/chat", response_model=QueryResponse)
 async def chat_endpoint(request: Request, body: QueryRequest):
     logger.info(f"Received /api/chat request with query: {body.query}")
@@ -47,8 +49,9 @@ async def chat_endpoint(request: Request, body: QueryRequest):
         logger.info("Generated response successfully")
         return QueryResponse(answer=answer)
     except Exception as e:
-        logger.error(f"Error in /api/chat: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        logger.error("Detailed error:\n" + traceback.format_exc())
+        raise HTTPException(status_code=500, detail="Internal Server Error — see backend logs.")
 
 @app.post("/api/register", response_model=UserAuthResponse)
 async def register_user(request: UserAuthRequest):
@@ -66,6 +69,12 @@ async def login_user(request: UserAuthRequest):
     if not user or user["password"] != request.password:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     return UserAuthResponse(name=user["name"], email=request.email)
+
+# ✅ Add this at the bottom of the file:
+@app.get("/")
+async def health_check():
+    return {"status": "AI Therapist backend is running"}
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
