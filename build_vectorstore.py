@@ -1,3 +1,5 @@
+# build_vectorstore.py
+
 import faiss #vector store
 import numpy as np
 import os
