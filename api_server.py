@@ -65,11 +65,7 @@ async def login_user(request: UserAuthRequest):
     if not user or user["password"] != request.password:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     return UserAuthResponse(name=user["name"], email=request.email)
-
-# if __name__ == "__main__":
-#     import uvicorn
-#     uvicorn.run(app, host="0.0.0.0", port=8000)
-
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("api_server:app", host="0.0.0.0", port=port, reload=True)
