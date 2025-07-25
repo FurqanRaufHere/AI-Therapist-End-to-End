@@ -4,45 +4,51 @@ import json
 import numpy as np
 import faiss # for vector search
 from dotenv import load_dotenv
+from sentence_transformers import SentenceTransformer
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain.chains import LLMChain
+from langchain.prompts import PromptTemplate
+from langchain.memory import ConversationBufferMemory
+
+# model_cache = {}
+# momodel_cache = {}
+# index_cache = {}
+# llm_cache = {}
+# chain_cache = {}
 
 
-model_cache = {}
-index_cache = {}
-chain_cache = {}
+# def get_model():
+#     if "sbert" not in model_cache:
+#         from sentence_transformers import SentenceTransformer
+#         model_cache["sbert"] = SentenceTransformer("all-MiniLM-L6-v2")
+#     return model_cache["sbert"]
 
+# def get_index():
+#     if "faiss_index" not in index_cache:
+#         import faiss
+#         index_cache["faiss_index"] = faiss.read_index(INDEX_FILE)
+#     return index_cache["faiss_index"]
 
-def get_model():
-    if "sbert" not in model_cache:
-        from sentence_transformers import SentenceTransformer
-        model_cache["sbert"] = SentenceTransformer("all-MiniLM-L6-v2")
-    return model_cache["sbert"]
+# def get_chain():
+#     if "chain" not in chain_cache:
+#         from langchain_google_genai import ChatGoogleGenerativeAI
+#         from langchain.chains import LLMChain
+#         from langchain.prompts import PromptTemplate
+#         from langchain.memory import ConversationBufferMemory
 
-def get_index():
-    if "faiss_index" not in index_cache:
-        import faiss
-        index_cache["faiss_index"] = faiss.read_index(INDEX_FILE)
-    return index_cache["faiss_index"]
+#         prompt = PromptTemplate(input_variables=["context", "question"], template=PROMPT_TEMPLATE)
 
-def get_chain():
-    if "chain" not in chain_cache:
-        from langchain_google_genai import ChatGoogleGenerativeAI
-        from langchain.chains import LLMChain
-        from langchain.prompts import PromptTemplate
-        from langchain.memory import ConversationBufferMemory
+#         memory = ConversationBufferMemory(memory_key="chat_history", input_key="question", return_messages=True)
 
-        prompt = PromptTemplate(input_variables=["context", "question"], template=PROMPT_TEMPLATE)
+#         llm = ChatGoogleGenerativeAI(
+#             model="gemini-2.0-flash",
+#             google_api_key=API_KEY,
+#             temperature=0.5,
+#             max_tokens=500
+#         )
 
-        memory = ConversationBufferMemory(memory_key="chat_history", input_key="question", return_messages=True)
-
-        llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
-            google_api_key=API_KEY,
-            temperature=0.5,
-            max_tokens=500
-        )
-
-        chain_cache["chain"] = LLMChain(llm=llm, prompt=prompt, memory=memory)
-    return chain_cache["chain"]
+#         chain_cache["chain"] = LLMChain(llm=llm, prompt=prompt, memory=memory)
+#     return chain_cache["chain"]
 
 
 
@@ -54,9 +60,21 @@ API_KEY = os.getenv("GOOGLE_API_KEY")
 CHUNK_FILE = "./ProcessedData/chunks.json"
 INDEX_FILE = "./VectorStore/vector_store.index"
 TOP_K = 5
+
+# Loading  chunks and FAISS index
+model = SentenceTransformer("all-MiniLM-L6-v2")   
 with open(CHUNK_FILE, "r", encoding="utf-8") as f:
     chunks = json.load(f)
+index = faiss.read_index(INDEX_FILE)
 
+# LangChain model setup with Gemini 2.0 Flash
+
+llm = ChatGoogleGenerativeAI(
+    model="gemini-2.0-flash", #LLM model name
+    google_api_key=API_KEY,
+    temperature=0.5,
+    max_tokens=500
+)
 
 PROMPT_TEMPLATE = """
 You are a warm, friendly, and supportive therapist assistant who specializes in student mental health. Your job is to help students feel heard and supported while offering simple, clear, and practical guidance they can act on. Your tone should be kind, conversational, and emotionally intelligent — like a calm, caring friend who knows how to help.
@@ -109,15 +127,22 @@ Here's the user's question:
 **Provide your neatly structured response in Markdown format below**:
 """
 
+prompt = PromptTemplate(input_variables=["context", "question"], template=PROMPT_TEMPLATE)
+
+memory = ConversationBufferMemory(memory_key="chat_history", input_key="question", return_messages=True)
+
+
+chain = LLMChain(llm=llm, prompt=prompt, memory=memory)
+
 
 def get_query_embedding(query):
-    model = get_model()  # ✅ Lazy-loads when needed
+    # model = get_model()  # ✅ Lazy-loads when needed
     return model.encode([query])[0]
 
 def retrieve_relevant_chunks(query, k=TOP_K):
     query_embedding = get_query_embedding(query).reshape(1, -1)
     faiss.normalize_L2(query_embedding)  # normalize query vector
-    index = get_index()  # ✅ Lazy-loads when needed
+    # index = get_index()  # ✅ Lazy-loads when needed
     distances, indices = index.search(query_embedding, k)
     results = []
     for i, idx in enumerate(indices[0]):
@@ -137,7 +162,7 @@ def rag_query_pipeline(user_query):
         print(f"Chunk: {item['chunk'][:200]}...\n")
 
     context_text = "\n\n".join([item["chunk"] for item in retrieved])
-    chain = get_chain() # ✅ Lazy-loads when needed
+    # chain = get_chain() # ✅ Lazy-loads when needed
     result = chain.run({"context": context_text, "question": user_query})
     return result
 

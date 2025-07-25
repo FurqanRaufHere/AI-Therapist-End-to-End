@@ -69,11 +69,14 @@ export function ChatInterface() {
         body: JSON.stringify({ query: userMessage.content }),
       });
 
+      const responseText = await response.text();
+      console.log('Raw response text:', responseText);
+
       if (!response.ok) {
         throw new Error(`Server error: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = JSON.parse(responseText);
 
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
